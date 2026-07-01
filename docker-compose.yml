@@ -24,7 +24,7 @@ services:
     environment:
       POSTGRES_HOST: db
     volumes:
-      - .:/app
+      - .:/app:z
       - /app/node_modules
     ports:
       - "${PORT:-3000}:3000"
