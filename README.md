@@ -27,9 +27,14 @@ The API will be available at `http://localhost:3000`.
 
 ### Web UI
 
-A minimal React UI for exercising the API lives in `web/`. It's a separate
-Vite dev server that proxies `/api` requests to the backend, so run it
-alongside the API:
+A minimal React UI for exercising the API lives in `web/`. `docker compose up`
+starts it alongside the API as its own Vite dev server, proxying `/api`
+requests to the `server` container.
+
+The UI will be available at `http://localhost:5173`.
+
+To run the UI without Docker (e.g. for faster iteration), point it at the API
+running on the host instead:
 
 ```bash
 cd web
@@ -37,7 +42,21 @@ npm install
 npm run dev
 ```
 
-The UI will be available at `http://localhost:5173`.
+## Production
+
+`docker-compose.yml` is for local development — it runs the API and UI as
+separate dev servers with hot reload. For a real deployment, use
+`docker-compose.prod.yml` instead, which builds the UI into static assets and
+serves them directly from the Express server (one container, no separate `web`
+service):
+
+```bash
+cp .env.example .env
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec server npm run db:migrate:prod
+```
+
+The app (API + UI) will be available at `http://localhost:3000`.
 
 ## Project structure
 
@@ -51,14 +70,15 @@ src/
 │   └── errorHandler.ts
 ├── routes/
 │   ├── books.ts
-│   └── goals.ts
+│   ├── goals.ts
+│   └── readingLog.ts
 └── types/
     └── db.ts             # Database types (Selectable, Insertable, Updateable)
 
 web/                       # React + Vite UI for testing the API
 ├── src/
 │   ├── api/               # fetch client + types mirroring the API
-│   ├── pages/              # BooksPage, GoalsPage
+│   ├── pages/              # ReadingLogPage, BooksPage, BookDetailPage, GoalsPage
 │   └── App.tsx             # routes + nav
 └── vite.config.ts          # dev server proxies /api -> localhost:3000
 ```
