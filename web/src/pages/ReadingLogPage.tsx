@@ -50,6 +50,11 @@ export function ReadingLogPage() {
           </tr>
         </thead>
         <tbody>
+          {currentlyReading.length === 0 && (
+            <tr className="empty">
+              <td colSpan={3}>Nothing in progress.</td>
+            </tr>
+          )}
           {currentlyReading.map((book) => (
             <tr key={book.id}>
               <td>
@@ -74,6 +79,11 @@ export function ReadingLogPage() {
           </tr>
         </thead>
         <tbody>
+          {entries.length === 0 && (
+            <tr className="empty">
+              <td colSpan={4}>No completed books yet.</td>
+            </tr>
+          )}
           {entries.map((entry) => (
             <tr key={entry.id}>
               <td>

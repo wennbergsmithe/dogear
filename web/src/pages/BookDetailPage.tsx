@@ -72,7 +72,10 @@ export function BookDetailPage() {
       </p>
       <h2>{book.title}</h2>
       <p>
-        {book.author} &mdash; status: {book.status}
+        {book.author} &mdash;{' '}
+        <span className="status" data-status={book.status}>
+          {book.status.replace('_', ' ')}
+        </span>
       </p>
 
       {error && <p className="error">{error}</p>}
@@ -105,6 +108,11 @@ export function BookDetailPage() {
           </tr>
         </thead>
         <tbody>
+          {entries.length === 0 && (
+            <tr className="empty">
+              <td colSpan={4}>No reading log entries yet.</td>
+            </tr>
+          )}
           {entries.map((entry) => (
             <ReadingLogRow
               key={entry.id}

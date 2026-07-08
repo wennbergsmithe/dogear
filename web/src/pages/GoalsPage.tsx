@@ -60,6 +60,11 @@ export function GoalsPage() {
           </tr>
         </thead>
         <tbody>
+          {goals.length === 0 && (
+            <tr className="empty">
+              <td colSpan={2}>No goals set yet.</td>
+            </tr>
+          )}
           {goals.map((goal) => (
             <tr key={goal.id}>
               <td>{goal.year}</td>

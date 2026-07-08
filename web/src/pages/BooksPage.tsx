@@ -83,6 +83,11 @@ export function BooksPage() {
           </tr>
         </thead>
         <tbody>
+          {books.length === 0 && (
+            <tr className="empty">
+              <td colSpan={4}>No books yet.</td>
+            </tr>
+          )}
           {books.map((book) => (
             <tr key={book.id}>
               <td>

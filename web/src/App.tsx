@@ -7,11 +7,14 @@ import { ReadingLogPage } from './pages/ReadingLogPage';
 function App() {
   return (
     <div className="app">
-      <nav>
-        <NavLink to="/">Reading Log</NavLink>
-        <NavLink to="/library">Library</NavLink>
-        <NavLink to="/goals">Goals</NavLink>
-      </nav>
+      <header>
+        <span className="site-title">dogear</span>
+        <nav>
+          <NavLink to="/">Reading Log</NavLink>
+          <NavLink to="/library">Library</NavLink>
+          <NavLink to="/goals">Goals</NavLink>
+        </nav>
+      </header>
       <main>
         <Routes>
           <Route path="/" element={<ReadingLogPage />} />
