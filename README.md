@@ -25,6 +25,20 @@ docker compose exec server npm run db:migrate
 
 The API will be available at `http://localhost:3000`.
 
+### Web UI
+
+A minimal React UI for exercising the API lives in `web/`. It's a separate
+Vite dev server that proxies `/api` requests to the backend, so run it
+alongside the API:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+The UI will be available at `http://localhost:5173`.
+
 ## Project structure
 
 ```
@@ -40,6 +54,13 @@ src/
 │   └── goals.ts
 └── types/
     └── db.ts             # Database types (Selectable, Insertable, Updateable)
+
+web/                       # React + Vite UI for testing the API
+├── src/
+│   ├── api/               # fetch client + types mirroring the API
+│   ├── pages/              # BooksPage, GoalsPage
+│   └── App.tsx             # routes + nav
+└── vite.config.ts          # dev server proxies /api -> localhost:3000
 ```
 
 ## API
@@ -55,6 +76,23 @@ src/
 | DELETE | `/api/books/:id` | Delete a book |
 
 **Book status values**: `want_to_read`, `reading`, `finished`
+
+### Reading log
+
+One book can have multiple reading log entries (e.g. re-reads), each tracking
+a single read-through. An entry is considered complete when `completed_at` is
+set (there's no separate `is_completed` flag). Setting `completed_at` on an
+entry also marks the book's status as `finished`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/books/:bookId/reading-log` | List reading log entries for a book |
+| POST | `/api/books/:bookId/reading-log` | Add a reading log entry |
+| PATCH | `/api/books/:bookId/reading-log/:id` | Update a reading log entry |
+| DELETE | `/api/books/:bookId/reading-log/:id` | Delete a reading log entry |
+| GET | `/api/reading-log` | List reading log entries with `completed_at` set, across all books, with book title/author |
+
+**Reading log fields**: `started_at`, `completed_at`
 
 ### Goals
 

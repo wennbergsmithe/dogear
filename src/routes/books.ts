@@ -1,8 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { NewBook, BookUpdate } from '../types/db';
+import readingLogRouter from './readingLog';
 
 const router = Router();
+
+router.use('/:bookId/reading-log', readingLogRouter);
 
 router.get('/', async (_req, res: Response, next: NextFunction) => {
   try {

@@ -26,9 +26,19 @@ export interface GoalTable {
   updated_at: ColumnType<Date, never, Date>;
 }
 
+export interface ReadingLogTable {
+  id: Generated<number>;
+  book_id: number;
+  started_at: Date | null;
+  completed_at: Date | null;
+  created_at: ColumnType<Date, never, never>;
+  updated_at: ColumnType<Date, never, Date>;
+}
+
 export interface Database {
   books: BookTable;
   goals: GoalTable;
+  reading_log: ReadingLogTable;
 }
 
 export type Book = Selectable<BookTable>;
@@ -38,3 +48,7 @@ export type BookUpdate = Updateable<BookTable>;
 export type Goal = Selectable<GoalTable>;
 export type NewGoal = Insertable<GoalTable>;
 export type GoalUpdate = Updateable<GoalTable>;
+
+export type ReadingLogEntry = Selectable<ReadingLogTable>;
+export type NewReadingLogEntry = Insertable<ReadingLogTable>;
+export type ReadingLogEntryUpdate = Updateable<ReadingLogTable>;
