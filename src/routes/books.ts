@@ -15,8 +15,11 @@ function splitAuthorName(name: string): { first_name: string; last_name: string 
   return { first_name: trimmed.slice(0, spaceIdx), last_name: trimmed.slice(spaceIdx + 1).trim() };
 }
 
-async function ensureAuthor(name: string): Promise<void> {
-  const { first_name, last_name } = splitAuthorName(name);
+async function ensureAuthor(
+  name: string,
+  explicitSplit?: { first_name: string; last_name: string },
+): Promise<void> {
+  const { first_name, last_name } = explicitSplit ?? splitAuthorName(name);
   await db
     .insertInto('authors')
     .values({ first_name, last_name })
@@ -49,12 +52,19 @@ router.get('/:id', async (req, res: Response, next: NextFunction) => {
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { author_first_name, author_last_name, ...bookFields } = req.body as NewBook & {
+      author_first_name?: string;
+      author_last_name?: string;
+    };
     const book = await db
       .insertInto('books')
-      .values(req.body as NewBook)
+      .values(bookFields as NewBook)
       .returningAll()
       .executeTakeFirstOrThrow();
-    await ensureAuthor(book.author);
+    const explicitSplit = author_first_name
+      ? { first_name: author_first_name, last_name: author_last_name ?? '' }
+      : undefined;
+    await ensureAuthor(book.author, explicitSplit);
     res.status(201).json(book);
   } catch (err) {
     next(err);

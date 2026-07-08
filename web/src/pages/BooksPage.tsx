@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import type { Author, Book, BookStatus } from '../api/types';
 
 const STATUSES: BookStatus[] = ['want_to_read', 'reading', 'finished'];
+const NEW_AUTHOR = '__new__';
 
 type SortKey = 'title' | 'author' | 'status';
 type SortDir = 'asc' | 'desc';
@@ -13,11 +14,28 @@ export function BooksPage() {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
+  const [authorChoice, setAuthorChoice] = useState('');
+  const [newAuthorFirstName, setNewAuthorFirstName] = useState('');
+  const [newAuthorLastName, setNewAuthorLastName] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('author');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
-  const authorIdByName = useMemo(() => new Map(authors.map((a) => [a.name, a.id])), [authors]);
+  const authorByName = useMemo(() => new Map(authors.map((a) => [a.name, a])), [authors]);
+  const sortedAuthorNames = useMemo(
+    () => authors.map((a) => a.name).sort((a, b) => a.localeCompare(b)),
+    [authors],
+  );
+
+  function authorSortKey(bookAuthor: string): string {
+    const match = authorByName.get(bookAuthor);
+    return match ? `${match.last_name}|${match.first_name}` : bookAuthor;
+  }
+
+  function authorLastFirst(bookAuthor: string): string {
+    const match = authorByName.get(bookAuthor);
+    if (!match) return bookAuthor;
+    return match.last_name ? `${match.last_name}, ${match.first_name}` : match.first_name;
+  }
 
   function handleSort(key: SortKey) {
     if (key === sortKey) {
@@ -33,10 +51,13 @@ export function BooksPage() {
       if (sortKey === 'status') {
         return STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status);
       }
+      if (sortKey === 'author') {
+        return authorSortKey(a.author).localeCompare(authorSortKey(b.author));
+      }
       return a[sortKey].localeCompare(b[sortKey]);
     });
     return sortDir === 'asc' ? sorted : sorted.reverse();
-  }, [books, sortKey, sortDir]);
+  }, [books, sortKey, sortDir, authorByName]);
 
   function load() {
     api.books
@@ -54,10 +75,38 @@ export function BooksPage() {
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    let authorFirstName: string;
+    let authorLastName: string;
+    if (authorChoice === NEW_AUTHOR) {
+      authorFirstName = newAuthorFirstName.trim();
+      authorLastName = newAuthorLastName.trim();
+      if (!authorFirstName) {
+        setError('Author first name is required');
+        return;
+      }
+    } else {
+      const existing = authorByName.get(authorChoice);
+      if (!existing) {
+        setError('Author is required');
+        return;
+      }
+      authorFirstName = existing.first_name;
+      authorLastName = existing.last_name;
+    }
+    const author = authorLastName ? `${authorFirstName} ${authorLastName}` : authorFirstName;
+
     try {
-      await api.books.create({ title, author });
+      await api.books.create({
+        title,
+        author,
+        author_first_name: authorFirstName,
+        author_last_name: authorLastName,
+      });
       setTitle('');
-      setAuthor('');
+      setAuthorChoice('');
+      setNewAuthorFirstName('');
+      setNewAuthorLastName('');
       load();
     } catch (err) {
       setError((err as Error).message);
@@ -95,12 +144,36 @@ export function BooksPage() {
           onChange={(e) => setTitle(e.target.value)}
           required
         />
-        <input
-          placeholder="Author"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
+        <select
+          value={authorChoice}
+          onChange={(e) => setAuthorChoice(e.target.value)}
           required
-        />
+        >
+          <option value="" disabled>
+            Select author…
+          </option>
+          <option value={NEW_AUTHOR}>+ New author…</option>
+          {sortedAuthorNames.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+        {authorChoice === NEW_AUTHOR && (
+          <>
+            <input
+              placeholder="First name"
+              value={newAuthorFirstName}
+              onChange={(e) => setNewAuthorFirstName(e.target.value)}
+              required
+            />
+            <input
+              placeholder="Last name"
+              value={newAuthorLastName}
+              onChange={(e) => setNewAuthorLastName(e.target.value)}
+            />
+          </>
+        )}
         <button type="submit">Add book</button>
       </form>
 
@@ -125,8 +198,10 @@ export function BooksPage() {
                 <Link to={`/books/${book.id}`}>{book.title}</Link>
               </td>
               <td>
-                {authorIdByName.has(book.author) ? (
-                  <Link to={`/authors/${authorIdByName.get(book.author)}`}>{book.author}</Link>
+                {authorByName.has(book.author) ? (
+                  <Link to={`/authors/${authorByName.get(book.author)!.id}`}>
+                    {authorLastFirst(book.author)}
+                  </Link>
                 ) : (
                   book.author
                 )}

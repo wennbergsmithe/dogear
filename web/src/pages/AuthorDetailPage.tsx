@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { AuthorDetail } from '../api/types';
@@ -8,16 +8,34 @@ export function AuthorDetailPage() {
   const authorId = Number(id);
   const [author, setAuthor] = useState<AuthorDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
-  useEffect(() => {
+  function load() {
     api.authors
       .get(authorId)
-      .then(setAuthor)
+      .then((data) => {
+        setAuthor(data);
+        setFirstName(data.first_name);
+        setLastName(data.last_name);
+      })
       .catch((err) => setError(err.message));
-  }, [authorId]);
+  }
 
-  if (error) return <p className="error">{error}</p>;
-  if (!author) return <p>Loading…</p>;
+  useEffect(load, [authorId]);
+
+  async function handleUpdate(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.authors.update(authorId, { first_name: firstName, last_name: lastName });
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  if (!author) return error ? <p className="error">{error}</p> : <p>Loading…</p>;
 
   return (
     <section>
@@ -25,6 +43,20 @@ export function AuthorDetailPage() {
         <Link to="/library">&larr; Back to library</Link>
       </p>
       <h2>{author.name}</h2>
+
+      {error && <p className="error">{error}</p>}
+
+      <form onSubmit={handleUpdate}>
+        <label>
+          First name
+          <input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+        </label>
+        <label>
+          Last name
+          <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        </label>
+        <button type="submit">Save</button>
+      </form>
 
       <table>
         <thead>

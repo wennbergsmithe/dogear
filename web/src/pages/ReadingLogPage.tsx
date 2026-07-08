@@ -46,7 +46,7 @@ export function ReadingLogPage() {
 
       {error && <p className="error">{error}</p>}
 
-      <h3>Currently Reading</h3>
+      <h3>Currently Reading ({currentlyReading.length})</h3>
 
       <table>
         <thead>
@@ -80,7 +80,7 @@ export function ReadingLogPage() {
         </tbody>
       </table>
 
-      <h3>Completed</h3>
+      <h3>Completed ({entries.length})</h3>
 
       <table>
         <thead>

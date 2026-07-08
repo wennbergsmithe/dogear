@@ -1,6 +1,6 @@
-import { Router, Response, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { db } from '../db';
-import { Author } from '../types/db';
+import { Author, AuthorUpdate } from '../types/db';
 
 const router = Router();
 
@@ -53,6 +53,40 @@ router.get('/:id', async (req, res: Response, next: NextFunction) => {
       .execute();
 
     res.json({ ...author, name, books });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existing = await db
+      .selectFrom('authors')
+      .selectAll()
+      .where('id', '=', Number(req.params.id))
+      .executeTakeFirst();
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const oldName = fullName(existing);
+
+    const updated = await db
+      .updateTable('authors')
+      .set({ ...(req.body as AuthorUpdate), updated_at: new Date() })
+      .where('id', '=', Number(req.params.id))
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    const newName = fullName(updated);
+
+    // Author names are matched to books by their full-name string, so a
+    // rename has to cascade to every book currently pointing at the old name.
+    if (newName !== oldName) {
+      await db
+        .updateTable('books')
+        .set({ author: newName, updated_at: new Date() })
+        .where('author', '=', oldName)
+        .execute();
+    }
+
+    res.json({ ...updated, name: newName });
   } catch (err) {
     next(err);
   }

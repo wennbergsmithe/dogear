@@ -21,6 +21,13 @@ export type NewBook = Pick<Book, 'title' | 'author'> &
 
 export type BookUpdate = Partial<NewBook>;
 
+// Optional explicit first/last name split, used when the author doesn't
+// already exist, so the authors table doesn't have to guess how to split it.
+export type NewBookInput = NewBook & {
+  author_first_name?: string;
+  author_last_name?: string;
+};
+
 export interface Goal {
   id: number;
   year: number;
@@ -64,3 +71,5 @@ export interface Author {
 export interface AuthorDetail extends Author {
   books: Book[];
 }
+
+export type AuthorUpdate = Partial<Pick<Author, 'first_name' | 'last_name'>>;

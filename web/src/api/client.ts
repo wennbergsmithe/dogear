@@ -1,11 +1,12 @@
 import type {
   Author,
   AuthorDetail,
+  AuthorUpdate,
   Book,
   BookUpdate,
   CompletedReadingLogEntry,
   Goal,
-  NewBook,
+  NewBookInput,
   NewReadingLogEntry,
   ReadingLogEntry,
   ReadingLogEntryUpdate,
@@ -28,7 +29,7 @@ export const api = {
   books: {
     list: () => request<Book[]>('/books'),
     get: (id: number) => request<Book>(`/books/${id}`),
-    create: (book: NewBook) =>
+    create: (book: NewBookInput) =>
       request<Book>('/books', { method: 'POST', body: JSON.stringify(book) }),
     update: (id: number, book: BookUpdate) =>
       request<Book>(`/books/${id}`, { method: 'PATCH', body: JSON.stringify(book) }),
@@ -37,6 +38,8 @@ export const api = {
   authors: {
     list: () => request<Author[]>('/authors'),
     get: (id: number) => request<AuthorDetail>(`/authors/${id}`),
+    update: (id: number, author: AuthorUpdate) =>
+      request<Author>(`/authors/${id}`, { method: 'PATCH', body: JSON.stringify(author) }),
   },
   goals: {
     list: () => request<Goal[]>('/goals'),
