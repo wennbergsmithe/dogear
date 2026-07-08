@@ -50,3 +50,17 @@ export interface CompletedReadingLogEntry {
   book_title: string;
   book_author: string;
 }
+
+export interface Author {
+  id: number;
+  first_name: string;
+  last_name: string;
+  name: string;
+  book_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthorDetail extends Author {
+  books: Book[];
+}

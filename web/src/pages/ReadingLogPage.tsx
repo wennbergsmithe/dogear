@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import type { Book, CompletedReadingLogEntry } from '../api/types';
+import type { Author, Book, CompletedReadingLogEntry } from '../api/types';
 
 interface CurrentlyReadingBook extends Book {
   startedAt: string | null;
@@ -10,7 +10,10 @@ interface CurrentlyReadingBook extends Book {
 export function ReadingLogPage() {
   const [currentlyReading, setCurrentlyReading] = useState<CurrentlyReadingBook[]>([]);
   const [entries, setEntries] = useState<CompletedReadingLogEntry[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const authorIdByName = useMemo(() => new Map(authors.map((a) => [a.name, a.id])), [authors]);
 
   useEffect(() => {
     api.books
@@ -30,6 +33,10 @@ export function ReadingLogPage() {
     api.readingLog
       .listCompleted()
       .then(setEntries)
+      .catch((err) => setError(err.message));
+    api.authors
+      .list()
+      .then(setAuthors)
       .catch((err) => setError(err.message));
   }, []);
 
@@ -60,7 +67,13 @@ export function ReadingLogPage() {
               <td>
                 <Link to={`/books/${book.id}`}>{book.title}</Link>
               </td>
-              <td>{book.author}</td>
+              <td>
+                {authorIdByName.has(book.author) ? (
+                  <Link to={`/authors/${authorIdByName.get(book.author)}`}>{book.author}</Link>
+                ) : (
+                  book.author
+                )}
+              </td>
               <td>{book.startedAt?.slice(0, 10) ?? ''}</td>
             </tr>
           ))}
@@ -89,7 +102,15 @@ export function ReadingLogPage() {
               <td>
                 <Link to={`/books/${entry.book_id}`}>{entry.book_title}</Link>
               </td>
-              <td>{entry.book_author}</td>
+              <td>
+                {authorIdByName.has(entry.book_author) ? (
+                  <Link to={`/authors/${authorIdByName.get(entry.book_author)}`}>
+                    {entry.book_author}
+                  </Link>
+                ) : (
+                  entry.book_author
+                )}
+              </td>
               <td>{entry.started_at?.slice(0, 10) ?? ''}</td>
               <td>{entry.completed_at?.slice(0, 10) ?? ''}</td>
             </tr>

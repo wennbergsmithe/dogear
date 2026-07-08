@@ -69,6 +69,7 @@ src/
 ├── middleware/
 │   └── errorHandler.ts
 ├── routes/
+│   ├── authors.ts
 │   ├── books.ts
 │   ├── goals.ts
 │   └── readingLog.ts
@@ -78,7 +79,7 @@ src/
 web/                       # React + Vite UI for testing the API
 ├── src/
 │   ├── api/               # fetch client + types mirroring the API
-│   ├── pages/              # ReadingLogPage, BooksPage, BookDetailPage, GoalsPage
+│   ├── pages/              # ReadingLogPage, BooksPage, BookDetailPage, AuthorDetailPage, GoalsPage
 │   └── App.tsx             # routes + nav
 └── vite.config.ts          # dev server proxies /api -> localhost:3000
 ```
@@ -96,6 +97,18 @@ web/                       # React + Vite UI for testing the API
 | DELETE | `/api/books/:id` | Delete a book |
 
 **Book status values**: `want_to_read`, `reading`, `finished`
+
+### Authors
+
+The `authors` table (`first_name`, `last_name`) is kept in sync automatically
+whenever a book is created or its `author` field is updated — there's no
+separate endpoint for creating authors. Books are matched to authors by
+comparing `books.author` against the author's full name.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/authors` | List all authors, with a `book_count` for each |
+| GET | `/api/authors/:id` | Get an author, including their `books` |
 
 ### Reading log
 

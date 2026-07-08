@@ -1,4 +1,6 @@
 import type {
+  Author,
+  AuthorDetail,
   Book,
   BookUpdate,
   CompletedReadingLogEntry,
@@ -31,6 +33,10 @@ export const api = {
     update: (id: number, book: BookUpdate) =>
       request<Book>(`/books/${id}`, { method: 'PATCH', body: JSON.stringify(book) }),
     remove: (id: number) => request<void>(`/books/${id}`, { method: 'DELETE' }),
+  },
+  authors: {
+    list: () => request<Author[]>('/authors'),
+    get: (id: number) => request<AuthorDetail>(`/authors/${id}`),
   },
   goals: {
     list: () => request<Goal[]>('/goals'),

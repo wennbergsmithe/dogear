@@ -1,5 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { db } from '../db';
+import authorsRouter from './authors';
 import booksRouter from './books';
 import goalsRouter from './goals';
 
@@ -7,6 +8,7 @@ const router = Router();
 
 router.use('/books', booksRouter);
 router.use('/goals', goalsRouter);
+router.use('/authors', authorsRouter);
 
 router.get('/reading-log', async (_req, res: Response, next: NextFunction) => {
   try {
