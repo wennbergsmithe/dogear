@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
+# Resolve a caller-supplied path before changing directory, so it's honored
+# whether it's relative to the caller's cwd or already absolute.
+file="${1:-}"
+if [[ -n "$file" ]]; then
+  file="$(readlink -f "$file")"
+fi
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 set -a
 source .env
@@ -11,7 +18,6 @@ POSTGRES_USER="${POSTGRES_USER:-dogear}"
 POSTGRES_DB="${POSTGRES_DB:-dogear}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-dogear}"
 
-file="${1:-}"
 if [[ -z "$file" ]]; then
   file=$(ls -t backups/*.sql 2>/dev/null | head -n1)
 fi
