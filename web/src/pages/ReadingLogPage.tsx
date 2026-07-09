@@ -7,6 +7,10 @@ interface CurrentlyReadingBook extends Book {
   startedAt: string | null;
 }
 
+function formatDate(value: string | null | undefined): string {
+  return value ? new Date(value).toLocaleDateString() : '';
+}
+
 export function ReadingLogPage() {
   const [currentlyReading, setCurrentlyReading] = useState<CurrentlyReadingBook[]>([]);
   const [entries, setEntries] = useState<CompletedReadingLogEntry[]>([]);
@@ -74,7 +78,7 @@ export function ReadingLogPage() {
                   book.author
                 )}
               </td>
-              <td>{book.startedAt?.slice(0, 10) ?? ''}</td>
+              <td>{formatDate(book.startedAt)}</td>
             </tr>
           ))}
         </tbody>
@@ -111,8 +115,8 @@ export function ReadingLogPage() {
                   entry.book_author
                 )}
               </td>
-              <td>{entry.started_at?.slice(0, 10) ?? ''}</td>
-              <td>{entry.completed_at?.slice(0, 10) ?? ''}</td>
+              <td>{formatDate(entry.started_at)}</td>
+              <td>{formatDate(entry.completed_at)}</td>
             </tr>
           ))}
         </tbody>

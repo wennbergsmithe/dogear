@@ -6,7 +6,7 @@ import type { Author, Book, BookStatus } from '../api/types';
 const STATUSES: BookStatus[] = ['want_to_read', 'reading', 'finished'];
 const NEW_AUTHOR = '__new__';
 
-type SortKey = 'title' | 'author' | 'status';
+type SortKey = 'title' | 'author' | 'status' | 'created_at';
 type SortDir = 'asc' | 'desc';
 
 export function BooksPage() {
@@ -183,13 +183,14 @@ export function BooksPage() {
             <SortableHeader label="Title" sortKey="title" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
             <SortableHeader label="Author" sortKey="author" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
             <SortableHeader label="Status" sortKey="status" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader label="Date Added" sortKey="created_at" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
             <th></th>
           </tr>
         </thead>
         <tbody>
           {books.length === 0 && (
             <tr className="empty">
-              <td colSpan={4}>No books yet.</td>
+              <td colSpan={5}>No books yet.</td>
             </tr>
           )}
           {sortedBooks.map((book) => (
@@ -218,6 +219,7 @@ export function BooksPage() {
                   ))}
                 </select>
               </td>
+              <td>{new Date(book.created_at).toLocaleDateString()}</td>
               <td>
                 <button onClick={() => handleDelete(book)}>Delete</button>
               </td>
