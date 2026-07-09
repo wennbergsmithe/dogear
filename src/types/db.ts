@@ -18,10 +18,14 @@ export interface BookTable {
   updated_at: ColumnType<Date, never, Date>;
 }
 
+export type GoalInterval = 'year' | 'month' | 'week';
+
 export interface GoalTable {
   id: Generated<number>;
   year: number;
+  interval: Generated<GoalInterval>;
   target: number;
+  is_completed: Generated<boolean>;
   created_at: ColumnType<Date, never, never>;
   updated_at: ColumnType<Date, never, Date>;
 }

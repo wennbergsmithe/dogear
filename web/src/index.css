@@ -253,3 +253,21 @@ td button + button {
   border-color: var(--finished-border);
   background: var(--finished-bg);
 }
+
+.goal-progress-months {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.month-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.month-dot.met {
+  background: var(--finished-text);
+}

@@ -6,6 +6,7 @@ import type {
   BookUpdate,
   CompletedReadingLogEntry,
   Goal,
+  GoalInterval,
   NewBookInput,
   NewReadingLogEntry,
   ReadingLogEntry,
@@ -43,9 +44,9 @@ export const api = {
   },
   goals: {
     list: () => request<Goal[]>('/goals'),
-    get: (year: number) => request<Goal>(`/goals/${year}`),
-    set: (year: number, target: number) =>
-      request<Goal>(`/goals/${year}`, { method: 'PUT', body: JSON.stringify({ target }) }),
+    get: (year: number) => request<Goal[]>(`/goals/${year}`),
+    set: (year: number, target: number, interval: GoalInterval) =>
+      request<Goal>(`/goals/${year}`, { method: 'PUT', body: JSON.stringify({ target, interval }) }),
   },
   readingLog: {
     list: (bookId: number) => request<ReadingLogEntry[]>(`/books/${bookId}/reading-log`),

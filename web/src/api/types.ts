@@ -28,10 +28,17 @@ export type NewBookInput = NewBook & {
   author_last_name?: string;
 };
 
+export type GoalInterval = 'year' | 'month' | 'week';
+
+export type GoalProgress = { type: 'percentage'; percent: number } | { type: 'months'; met: boolean[] };
+
 export interface Goal {
   id: number;
   year: number;
+  interval: GoalInterval;
   target: number;
+  is_completed: boolean;
+  progress: GoalProgress;
   created_at: string;
   updated_at: string;
 }
