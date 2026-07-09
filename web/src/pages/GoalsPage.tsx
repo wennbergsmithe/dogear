@@ -83,7 +83,8 @@ export function GoalsPage() {
         <button type="submit">Set goal</button>
       </form>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Year</th>
@@ -109,7 +110,8 @@ export function GoalsPage() {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </section>
   );
 }

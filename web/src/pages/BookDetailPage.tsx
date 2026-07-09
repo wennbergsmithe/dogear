@@ -98,7 +98,8 @@ export function BookDetailPage() {
         <button type="submit">Add entry</button>
       </form>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Started</th>
@@ -122,7 +123,8 @@ export function BookDetailPage() {
             />
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </section>
   );
 }

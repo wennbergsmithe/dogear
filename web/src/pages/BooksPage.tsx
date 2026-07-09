@@ -177,13 +177,21 @@ export function BooksPage() {
         <button type="submit">Add book</button>
       </form>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <SortableHeader label="Title" sortKey="title" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
             <SortableHeader label="Author" sortKey="author" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
             <SortableHeader label="Status" sortKey="status" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-            <SortableHeader label="Date Added" sortKey="created_at" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader
+              label="Date Added"
+              sortKey="created_at"
+              activeKey={sortKey}
+              dir={sortDir}
+              onSort={handleSort}
+              className="col-hide-mobile"
+            />
             <th></th>
           </tr>
         </thead>
@@ -219,14 +227,15 @@ export function BooksPage() {
                   ))}
                 </select>
               </td>
-              <td>{new Date(book.created_at).toLocaleDateString()}</td>
+              <td className="col-hide-mobile">{new Date(book.created_at).toLocaleDateString()}</td>
               <td>
                 <button onClick={() => handleDelete(book)}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </section>
   );
 }
@@ -237,17 +246,19 @@ function SortableHeader({
   activeKey,
   dir,
   onSort,
+  className = '',
 }: {
   label: string;
   sortKey: SortKey;
   activeKey: SortKey;
   dir: SortDir;
   onSort: (key: SortKey) => void;
+  className?: string;
 }) {
   const isActive = sortKey === activeKey;
   return (
     <th
-      className={isActive ? 'sortable active' : 'sortable'}
+      className={`${isActive ? 'sortable active' : 'sortable'} ${className}`.trim()}
       onClick={() => onSort(sortKey)}
       aria-sort={isActive ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}
     >

@@ -52,7 +52,8 @@ export function ReadingLogPage() {
 
       <h3>Currently Reading ({currentlyReading.length})</h3>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Title</th>
@@ -82,11 +83,13 @@ export function ReadingLogPage() {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
 
       <h3>Completed ({entries.length})</h3>
 
-      <table>
+      <div className="table-wrap">
+        <table>
         <thead>
           <tr>
             <th>Title</th>
@@ -120,7 +123,8 @@ export function ReadingLogPage() {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </section>
   );
 }
