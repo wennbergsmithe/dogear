@@ -1,3 +1,11 @@
+export type UserRole = 'user' | 'admin';
+
+export interface User {
+  id: number;
+  email: string;
+  role: UserRole;
+}
+
 export type BookStatus = 'want_to_read' | 'reading' | 'finished';
 
 export interface Book {

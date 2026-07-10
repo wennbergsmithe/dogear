@@ -27,21 +27,27 @@ async function ensureAuthor(
     .execute();
 }
 
-router.get('/', async (_req, res: Response, next: NextFunction) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await db.selectFrom('books').selectAll().orderBy('created_at', 'desc').execute();
+    const result = await db
+      .selectFrom('books')
+      .selectAll()
+      .where('user_id', '=', req.user!.id)
+      .orderBy('created_at', 'desc')
+      .execute();
     res.json(result);
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/:id', async (req, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const book = await db
       .selectFrom('books')
       .selectAll()
       .where('id', '=', Number(req.params.id))
+      .where('user_id', '=', req.user!.id)
       .executeTakeFirst();
     if (!book) return res.status(404).json({ error: 'Not found' });
     res.json(book);
@@ -58,7 +64,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     };
     const book = await db
       .insertInto('books')
-      .values(bookFields as NewBook)
+      .values({ ...(bookFields as NewBook), user_id: req.user!.id })
       .returningAll()
       .executeTakeFirstOrThrow();
     const explicitSplit = author_first_name
@@ -77,6 +83,7 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
       .updateTable('books')
       .set({ ...(req.body as BookUpdate), updated_at: new Date() })
       .where('id', '=', Number(req.params.id))
+      .where('user_id', '=', req.user!.id)
       .returningAll()
       .executeTakeFirst();
     if (!book) return res.status(404).json({ error: 'Not found' });
@@ -89,11 +96,12 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
   }
 });
 
-router.delete('/:id', async (req, res: Response, next: NextFunction) => {
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const deleted = await db
       .deleteFrom('books')
       .where('id', '=', Number(req.params.id))
+      .where('user_id', '=', req.user!.id)
       .returningAll()
       .executeTakeFirst();
     if (!deleted) return res.status(404).json({ error: 'Not found' });

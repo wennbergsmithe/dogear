@@ -8,10 +8,14 @@ function fullName(author: Pick<Author, 'first_name' | 'last_name'>): string {
   return author.last_name ? `${author.first_name} ${author.last_name}` : author.first_name;
 }
 
-router.get('/', async (_req, res: Response, next: NextFunction) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authors = await db.selectFrom('authors').selectAll().execute();
-    const books = await db.selectFrom('books').select('author').execute();
+    const books = await db
+      .selectFrom('books')
+      .select('author')
+      .where('user_id', '=', req.user!.id)
+      .execute();
 
     const counts = new Map<string, number>();
     for (const book of books) {
@@ -35,7 +39,7 @@ router.get('/', async (_req, res: Response, next: NextFunction) => {
   }
 });
 
-router.get('/:id', async (req, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const author = await db
       .selectFrom('authors')
@@ -49,6 +53,7 @@ router.get('/:id', async (req, res: Response, next: NextFunction) => {
       .selectFrom('books')
       .selectAll()
       .where('author', '=', name)
+      .where('user_id', '=', req.user!.id)
       .orderBy('title')
       .execute();
 
@@ -83,6 +88,7 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
         .updateTable('books')
         .set({ author: newName, updated_at: new Date() })
         .where('author', '=', oldName)
+        .where('user_id', '=', req.user!.id)
         .execute();
     }
 

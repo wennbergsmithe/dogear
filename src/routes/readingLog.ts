@@ -13,12 +13,27 @@ async function markBookFinishedIfCompleted(bookId: number, completedAt: unknown)
     .execute();
 }
 
+// reading_log has no user_id of its own; ownership is enforced through the
+// parent book, so every handler below must confirm the book belongs to the
+// caller before touching its log entries.
+async function ownsBook(bookId: number, userId: number): Promise<boolean> {
+  const book = await db
+    .selectFrom('books')
+    .select('id')
+    .where('id', '=', bookId)
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+  return !!book;
+}
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const bookId = Number(req.params.bookId);
+    if (!(await ownsBook(bookId, req.user!.id))) return res.status(404).json({ error: 'Not found' });
     const entries = await db
       .selectFrom('reading_log')
       .selectAll()
-      .where('book_id', '=', Number(req.params.bookId))
+      .where('book_id', '=', bookId)
       .orderBy('started_at', 'desc')
       .execute();
     res.json(entries);
@@ -29,11 +44,13 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const bookId = Number(req.params.bookId);
+    if (!(await ownsBook(bookId, req.user!.id))) return res.status(404).json({ error: 'Not found' });
     const entry = await db
       .insertInto('reading_log')
       .values({
         ...(req.body as Omit<NewReadingLogEntry, 'book_id'>),
-        book_id: Number(req.params.bookId),
+        book_id: bookId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();
@@ -46,11 +63,13 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const bookId = Number(req.params.bookId);
+    if (!(await ownsBook(bookId, req.user!.id))) return res.status(404).json({ error: 'Not found' });
     const entry = await db
       .updateTable('reading_log')
       .set({ ...(req.body as ReadingLogEntryUpdate), updated_at: new Date() })
       .where('id', '=', Number(req.params.id))
-      .where('book_id', '=', Number(req.params.bookId))
+      .where('book_id', '=', bookId)
       .returningAll()
       .executeTakeFirst();
     if (!entry) return res.status(404).json({ error: 'Not found' });
@@ -63,10 +82,12 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const bookId = Number(req.params.bookId);
+    if (!(await ownsBook(bookId, req.user!.id))) return res.status(404).json({ error: 'Not found' });
     const deleted = await db
       .deleteFrom('reading_log')
       .where('id', '=', Number(req.params.id))
-      .where('book_id', '=', Number(req.params.bookId))
+      .where('book_id', '=', bookId)
       .returningAll()
       .executeTakeFirst();
     if (!deleted) return res.status(404).json({ error: 'Not found' });

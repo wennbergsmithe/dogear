@@ -11,6 +11,7 @@ import type {
   NewReadingLogEntry,
   ReadingLogEntry,
   ReadingLogEntryUpdate,
+  User,
 } from './types';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -18,6 +19,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     ...init,
   });
+  // A 401 outside of the auth endpoints means the session cookie expired or
+  // was never there — bounce to the login page rather than surfacing this as
+  // a page-level error. /auth/me and /auth/login report 401 as normal
+  // application state (not logged in / bad credentials), so they're exempt.
+  if (res.status === 401 && !path.startsWith('/auth/')) {
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? `Request failed: ${res.status}`);
@@ -27,6 +36,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  auth: {
+    login: (email: string, password: string) =>
+      request<User>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+    logout: () => request<void>('/auth/logout', { method: 'POST' }),
+    me: () => request<User>('/auth/me'),
+  },
   books: {
     list: () => request<Book[]>('/books'),
     get: (id: number) => request<Book>(`/books/${id}`),

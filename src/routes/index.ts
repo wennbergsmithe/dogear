@@ -1,4 +1,4 @@
-import { Router, Response, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import authorsRouter from './authors';
 import booksRouter from './books';
@@ -10,7 +10,7 @@ router.use('/books', booksRouter);
 router.use('/goals', goalsRouter);
 router.use('/authors', authorsRouter);
 
-router.get('/reading-log', async (_req, res: Response, next: NextFunction) => {
+router.get('/reading-log', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const entries = await db
       .selectFrom('reading_log')
@@ -24,6 +24,7 @@ router.get('/reading-log', async (_req, res: Response, next: NextFunction) => {
         'books.author as book_author',
       ])
       .where('reading_log.completed_at', 'is not', null)
+      .where('books.user_id', '=', req.user!.id)
       .orderBy('reading_log.completed_at', 'desc')
       .execute();
     res.json(entries);

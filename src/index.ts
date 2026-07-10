@@ -1,18 +1,23 @@
 import 'dotenv/config';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import fs from 'node:fs';
 import path from 'node:path';
 import router from './routes';
+import authRouter from './routes/auth';
 import { errorHandler } from './middleware/errorHandler';
+import { requireAuth } from './middleware/auth';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-app.use('/api', router);
+app.use('/api/auth', authRouter);
+app.use('/api', requireAuth, router);
 
 // In production the UI is built into ./public alongside dist/index.js.
 // Serve it and fall back to index.html for client-side routing.

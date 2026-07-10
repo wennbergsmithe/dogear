@@ -12,11 +12,13 @@ function isGoalInterval(value: unknown): value is GoalInterval {
 
 type GoalProgress = { type: 'percentage'; percent: number } | { type: 'months'; met: boolean[] };
 
-async function getCompletedDates(): Promise<Date[]> {
+async function getCompletedDates(userId: number): Promise<Date[]> {
   const rows = await db
     .selectFrom('reading_log')
-    .select('completed_at')
-    .where('completed_at', 'is not', null)
+    .innerJoin('books', 'books.id', 'reading_log.book_id')
+    .select('reading_log.completed_at')
+    .where('reading_log.completed_at', 'is not', null)
+    .where('books.user_id', '=', userId)
     .execute();
   return rows.map((row) => row.completed_at as Date);
 }
@@ -41,12 +43,17 @@ function computeProgress(
   return { type: 'percentage', percent };
 }
 
-async function upsertGoal(year: number, target: number, interval: GoalInterval | undefined) {
+async function upsertGoal(
+  userId: number,
+  year: number,
+  target: number,
+  interval: GoalInterval | undefined,
+) {
   return db
     .insertInto('goals')
-    .values({ year, target, ...(interval !== undefined ? { interval } : {}) })
+    .values({ user_id: userId, year, target, ...(interval !== undefined ? { interval } : {}) })
     .onConflict((oc) =>
-      oc.columns(['year', 'interval']).doUpdateSet({
+      oc.columns(['user_id', 'year', 'interval']).doUpdateSet({
         target,
         ...(interval !== undefined ? { interval } : {}),
         updated_at: new Date(),
@@ -56,11 +63,11 @@ async function upsertGoal(year: number, target: number, interval: GoalInterval |
     .executeTakeFirstOrThrow();
 }
 
-router.get('/', async (_req, res: Response, next: NextFunction) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const [goals, completedDates] = await Promise.all([
-      db.selectFrom('goals').selectAll().orderBy('year', 'desc').execute(),
-      getCompletedDates(),
+      db.selectFrom('goals').selectAll().where('user_id', '=', req.user!.id).orderBy('year', 'desc').execute(),
+      getCompletedDates(req.user!.id),
     ]);
     const result = goals.map((goal) => ({ ...goal, progress: computeProgress(goal, completedDates) }));
     res.json(result);
@@ -69,16 +76,17 @@ router.get('/', async (_req, res: Response, next: NextFunction) => {
   }
 });
 
-router.get('/:year', async (req, res: Response, next: NextFunction) => {
+router.get('/:year', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const [goals, completedDates] = await Promise.all([
       db
         .selectFrom('goals')
         .selectAll()
         .where('year', '=', Number(req.params.year))
+        .where('user_id', '=', req.user!.id)
         .orderBy('interval')
         .execute(),
-      getCompletedDates(),
+      getCompletedDates(req.user!.id),
     ]);
     const result = goals.map((goal) => ({ ...goal, progress: computeProgress(goal, completedDates) }));
     res.json(result);
@@ -96,7 +104,7 @@ router.put('/', async (req: Request, res: Response, next: NextFunction) => {
     if (interval !== undefined && !isGoalInterval(interval)) {
       return res.status(400).json({ error: `interval must be one of: ${GOAL_INTERVALS.join(', ')}` });
     }
-    const goal = await upsertGoal(year, target, interval);
+    const goal = await upsertGoal(req.user!.id, year, target, interval);
     res.json(goal);
   } catch (err) {
     next(err);
@@ -112,7 +120,7 @@ router.put('/:year', async (req: Request, res: Response, next: NextFunction) => 
     if (interval !== undefined && !isGoalInterval(interval)) {
       return res.status(400).json({ error: `interval must be one of: ${GOAL_INTERVALS.join(', ')}` });
     }
-    const goal = await upsertGoal(Number(req.params.year), target, interval);
+    const goal = await upsertGoal(req.user!.id, Number(req.params.year), target, interval);
     res.json(goal);
   } catch (err) {
     next(err);
