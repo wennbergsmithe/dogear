@@ -62,6 +62,7 @@ export const api = {
     get: (year: number) => request<Goal[]>(`/goals/${year}`),
     set: (year: number, target: number, interval: GoalInterval) =>
       request<Goal>(`/goals/${year}`, { method: 'PUT', body: JSON.stringify({ target, interval }) }),
+    remove: (id: number) => request<void>(`/goals/${id}`, { method: 'DELETE' }),
   },
   readingLog: {
     list: (bookId: number) => request<ReadingLogEntry[]>(`/books/${bookId}/reading-log`),

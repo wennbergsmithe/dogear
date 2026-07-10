@@ -54,6 +54,17 @@ export function GoalsPage() {
     }
   }
 
+  async function handleDelete(goal: Goal) {
+    if (!window.confirm(`Delete the ${goal.year} goal (${goal.target} ${INTERVAL_LABELS[goal.interval]})? This can't be undone.`)) return;
+    setError(null);
+    try {
+      await api.goals.remove(goal.id);
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
   return (
     <section>
       <h2>Goals</h2>
@@ -90,12 +101,13 @@ export function GoalsPage() {
             <th>Year</th>
             <th>Target</th>
             <th>Progress</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {goals.length === 0 && (
             <tr className="empty">
-              <td colSpan={3}>No goals set yet.</td>
+              <td colSpan={4}>No goals set yet.</td>
             </tr>
           )}
           {goals.map((goal) => (
@@ -106,6 +118,9 @@ export function GoalsPage() {
               </td>
               <td>
                 <GoalProgressCell progress={goal.progress} />
+              </td>
+              <td>
+                <button onClick={() => handleDelete(goal)}>Delete</button>
               </td>
             </tr>
           ))}

@@ -54,6 +54,7 @@ export function BookDetailPage() {
   }
 
   async function handleDelete(entryId: number) {
+    if (!window.confirm("Delete this reading log entry? This can't be undone.")) return;
     setError(null);
     try {
       await api.readingLog.remove(bookId, entryId);

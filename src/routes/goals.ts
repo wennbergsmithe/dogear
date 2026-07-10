@@ -127,4 +127,19 @@ router.put('/:year', async (req: Request, res: Response, next: NextFunction) => 
   }
 });
 
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const deleted = await db
+      .deleteFrom('goals')
+      .where('id', '=', Number(req.params.id))
+      .where('user_id', '=', req.user!.id)
+      .returningAll()
+      .executeTakeFirst();
+    if (!deleted) return res.status(404).json({ error: 'Not found' });
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

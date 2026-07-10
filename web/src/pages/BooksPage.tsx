@@ -123,6 +123,7 @@ export function BooksPage() {
   }
 
   async function handleDelete(book: Book) {
+    if (!window.confirm(`Delete "${book.title}"? This can't be undone.`)) return;
     try {
       await api.books.remove(book.id);
       load();
